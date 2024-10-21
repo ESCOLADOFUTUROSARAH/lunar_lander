@@ -16,6 +16,7 @@ export class Lander {
         this.fuel = 100;  // Combustível inicial (100%)
         this.maxFuel = 100;
         this.fuelConsumptionRate = 0.2;
+        this.maxLandingSpeed = 2; // Velocidade máxima para uma aterrissagem segura
         this.keys = {
             ArrowUp: false,
             ArrowLeft: false,
@@ -129,13 +130,20 @@ export class Lander {
 
         // Verificar se aterrissou
         if (this.centerY + this.triangleHeight / 2 > this.canvas.height) {
+            // Verificar velocidade antes de zerar
+            if (Math.abs(this.velocityY) > this.maxLandingSpeed) {
+                this.showGameOverModal();  // Exibir modal de "Game Over"
+                return;  // Interrompe a execução para evitar a exibição de ambas as modais
+            }
+
+            // Aterrissagem bem-sucedida
+            this.hasLanded = true;
+            this.showLandingModal();  // Exibir modal de sucesso na aterrissagem
+
+            // Agora zera a velocidade depois da verificação
             this.centerY = this.canvas.height - this.triangleHeight / 2;
             this.velocityY = 0;
             this.velocityX = 0;
-            this.hasLanded = true;
-
-            // Exibir a modal quando aterrissar
-            this.showLandingModal();
 
             // Gerar partículas de poeira
             for (let i = 0; i < 20; i++) {
@@ -143,6 +151,8 @@ export class Lander {
             }
         }
     }
+
+
 
     consumeFuel() {
         this.fuel -= this.fuelConsumptionRate;
@@ -153,6 +163,11 @@ export class Lander {
 
     showLandingModal() {
         const modal = document.getElementById('landingModal');
-        modal.style.display = 'flex'; // Exibir a modal
+        modal.style.display = 'flex'; // Exibir a modal de aterrissagem
+    }
+
+    showGameOverModal() {
+        const modal = document.getElementById('gameOverModal');
+        modal.style.display = 'flex'; // Exibir a modal de "Game Over"
     }
 }

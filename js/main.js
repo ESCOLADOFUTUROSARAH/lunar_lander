@@ -12,9 +12,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const lander = new Lander(ctx, canvas);
     const starField = new StarField(ctx, canvas);
 
-    // Garantir que a modal esteja escondida no início
-    const modal = document.getElementById('landingModal');
-    modal.style.display = 'none';  // Esconder a modal no início
+    // Garantir que as modais estejam escondidas no início
+    const landingModal = document.getElementById('landingModal');
+    const gameOverModal = document.getElementById('gameOverModal');
+    landingModal.style.display = 'none';
+    gameOverModal.style.display = 'none';
 
     function loop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa a tela
@@ -26,30 +28,23 @@ document.addEventListener("DOMContentLoaded", function () {
         requestAnimationFrame(loop); // Loop contínuo
     }
 
-    // Reiniciar o jogo ao clicar em "Jogar novamente"
+    // Reiniciar o jogo ao clicar em "Jogar novamente" nas duas modais
     const restartButton = document.getElementById('restartButton');
-    restartButton.addEventListener('click', () => {
-        modal.style.display = 'none'; // Esconder a modal
+    const gameOverRestartButton = document.getElementById('gameOverRestartButton');
+
+    function restartGame() {
+        landingModal.style.display = 'none';  // Esconder as modais
+        gameOverModal.style.display = 'none';
         lander.centerY = 50;  // Reposicionar a nave no início
         lander.centerX = canvas.width / 2;
         lander.velocityY = 0;
         lander.velocityX = 0;
         lander.fuel = lander.maxFuel;
         lander.hasLanded = false;
+    }
 
-        // Resetar os eventos de controle de teclado para os boosters
-        window.addEventListener('keydown', (e) => {
-            if (e.key in lander.keys) {
-                lander.keys[e.key] = true;
-            }
-        });
-
-        window.addEventListener('keyup', (e) => {
-            if (e.key in lander.keys) {
-                lander.keys[e.key] = false;
-            }
-        });
-    });
+    restartButton.addEventListener('click', restartGame);
+    gameOverRestartButton.addEventListener('click', restartGame);
 
     // Capturar eventos de teclado para controlar a nave
     window.addEventListener('keydown', (e) => {
