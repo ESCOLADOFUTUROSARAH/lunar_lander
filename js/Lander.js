@@ -9,10 +9,13 @@ export class Lander {
         this.triangleBase = 25;
         this.centerX = canvas.width / 2;
         this.centerY = 50;
-        this.gravity = 0.162;
+        this.gravity = 0.162; // Gravidade da Lua
         this.velocityY = 0;
         this.velocityX = 0;
         this.hasLanded = false;
+        this.fuel = 100;  // Combustível inicial (100%)
+        this.maxFuel = 100;
+        this.fuelConsumptionRate = 0.2;  // Quanto de combustível é consumido por ação
         this.keys = {
             ArrowUp: false,
             ArrowLeft: false,
@@ -71,6 +74,30 @@ export class Lander {
             ctx.closePath();
             ctx.fill();
         }
+
+        // Desenhar a barra de combustível
+        this.drawFuelBar();
+    }
+
+    drawFuelBar() {
+        const barWidth = 200;
+        const barHeight = 20;
+        const margin = 20;
+        const fuelPercentage = this.fuel / this.maxFuel;
+
+        // Desenhar o texto "Nível de Combustível" acima da barra
+        this.ctx.fillStyle = "white";
+        this.ctx.font = "10px Arial";
+        this.ctx.fillText("Nível de Combustível", margin, margin - 5);
+
+        // Desenhar a borda da barra
+        this.ctx.strokeStyle = "white";
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(margin, margin, barWidth, barHeight);
+
+        // Desenhar a barra de combustível
+        this.ctx.fillStyle = "orange";
+        this.ctx.fillRect(margin, margin, barWidth * fuelPercentage, barHeight);
     }
 
     update() {
@@ -81,19 +108,22 @@ export class Lander {
         }
         this.centerY += this.velocityY;
 
-        if (this.keys.ArrowUp) {
+        if (this.keys.ArrowUp && this.fuel > 0) {
             if (this.hasLanded) {
                 this.hasLanded = false;
                 this.velocityY = -this.gravity * 1.5;
             } else {
                 this.velocityY -= this.gravity * 0.3;
             }
+            this.consumeFuel();
         }
-        if (this.keys.ArrowLeft && !this.hasLanded) {
+        if (this.keys.ArrowLeft && !this.hasLanded && this.fuel > 0) {
             this.velocityX -= this.gravity * 0.2;
+            this.consumeFuel();
         }
-        if (this.keys.ArrowRight && !this.hasLanded) {
+        if (this.keys.ArrowRight && !this.hasLanded && this.fuel > 0) {
             this.velocityX += this.gravity * 0.2;
+            this.consumeFuel();
         }
 
         this.centerX += this.velocityX;
@@ -108,6 +138,14 @@ export class Lander {
             for (let i = 0; i < 20; i++) {
                 this.particles.push(new DustParticle(this.ctx, this.centerX, this.centerY + this.triangleHeight / 2));
             }
+        }
+    }
+
+    consumeFuel() {
+        // Reduz o combustível quando os boosters são usados
+        this.fuel -= this.fuelConsumptionRate;
+        if (this.fuel < 0) {
+            this.fuel = 0;  // Não deixar o combustível ir abaixo de 0
         }
     }
 }
