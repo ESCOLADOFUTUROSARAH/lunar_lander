@@ -9,14 +9,17 @@ export class Lander {
         this.triangleBase = 25;
         this.centerX = canvas.width / 2;
         this.centerY = 50;
-        this.gravity = 0.162; // Gravidade da Lua
+        this.gravity = 0.162;
         this.velocityY = 0;
         this.velocityX = 0;
         this.hasLanded = false;
-        this.fuel = 100;  // Combustível inicial (100%)
+        this.isExploding = false; // Novo estado para controlar a explosão
+        this.explosionParts = [];
+        this.explosionDuration = 60; // Duração da animação de explosão (em frames)
+        this.fuel = 100;
         this.maxFuel = 100;
         this.fuelConsumptionRate = 0.2;
-        this.maxLandingSpeed = 2; // Velocidade máxima para uma aterrissagem segura
+        this.maxLandingSpeed = 2;
         this.keys = {
             ArrowUp: false,
             ArrowLeft: false,
@@ -28,17 +31,21 @@ export class Lander {
     draw() {
         const { ctx, centerX, centerY, triangleHeight, triangleBase } = this;
 
-        // Desenhar o lander
-        ctx.fillStyle = "black";
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY - triangleHeight / 2);
-        ctx.lineTo(centerX - triangleBase / 2, centerY + triangleHeight / 2);
-        ctx.lineTo(centerX + triangleBase / 2, centerY + triangleHeight / 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        if (this.isExploding) {
+            this.drawExplosion();  // Desenhar a explosão quando a nave estiver explodindo
+        } else {
+            // Desenhar o lander normalmente
+            ctx.fillStyle = "black";
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - triangleHeight / 2);
+            ctx.lineTo(centerX - triangleBase / 2, centerY + triangleHeight / 2);
+            ctx.lineTo(centerX + triangleBase / 2, centerY + triangleHeight / 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
 
         // Desenhar as partículas de poeira
         this.particles.forEach(particle => {
@@ -49,34 +56,36 @@ export class Lander {
         this.particles = this.particles.filter(particle => particle.isVisible());
 
         // Desenhar boosters
-        ctx.fillStyle = "orange";
-        if (this.keys.ArrowUp && (!this.hasLanded || centerY === this.canvas.height - triangleHeight / 2)) {
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY + triangleHeight / 2);
-            ctx.lineTo(centerX - 5, centerY + triangleHeight / 2 + 15);
-            ctx.lineTo(centerX + 5, centerY + triangleHeight / 2 + 15);
-            ctx.closePath();
-            ctx.fill();
-        }
-        if (this.keys.ArrowLeft && !this.hasLanded) {
-            ctx.beginPath();
-            ctx.moveTo(centerX + triangleBase / 2, centerY);
-            ctx.lineTo(centerX + triangleBase / 2 + 15, centerY - 5);
-            ctx.lineTo(centerX + triangleBase / 2 + 15, centerY + 5);
-            ctx.closePath();
-            ctx.fill();
-        }
-        if (this.keys.ArrowRight && !this.hasLanded) {
-            ctx.beginPath();
-            ctx.moveTo(centerX - triangleBase / 2, centerY);
-            ctx.lineTo(centerX - triangleBase / 2 - 15, centerY - 5);
-            ctx.lineTo(centerX - triangleBase / 2 - 15, centerY + 5);
-            ctx.closePath();
-            ctx.fill();
-        }
+        if (!this.isExploding) {
+            ctx.fillStyle = "orange";
+            if (this.keys.ArrowUp && (!this.hasLanded || centerY === this.canvas.height - triangleHeight / 2)) {
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY + triangleHeight / 2);
+                ctx.lineTo(centerX - 5, centerY + triangleHeight / 2 + 15);
+                ctx.lineTo(centerX + 5, centerY + triangleHeight / 2 + 15);
+                ctx.closePath();
+                ctx.fill();
+            }
+            if (this.keys.ArrowLeft && !this.hasLanded) {
+                ctx.beginPath();
+                ctx.moveTo(centerX + triangleBase / 2, centerY);
+                ctx.lineTo(centerX + triangleBase / 2 + 15, centerY - 5);
+                ctx.lineTo(centerX + triangleBase / 2 + 15, centerY + 5);
+                ctx.closePath();
+                ctx.fill();
+            }
+            if (this.keys.ArrowRight && !this.hasLanded) {
+                ctx.beginPath();
+                ctx.moveTo(centerX - triangleBase / 2, centerY);
+                ctx.lineTo(centerX - triangleBase / 2 - 15, centerY - 5);
+                ctx.lineTo(centerX - triangleBase / 2 - 15, centerY + 5);
+                ctx.closePath();
+                ctx.fill();
+            }
 
-        // Desenhar a barra de combustível
-        this.drawFuelBar();
+            // Desenhar a barra de combustível
+            this.drawFuelBar();
+        }
     }
 
     drawFuelBar() {
@@ -101,6 +110,11 @@ export class Lander {
     }
 
     update() {
+        if (this.isExploding) {
+            this.updateExplosion();  // Atualizar a animação da explosão
+            return;  // Se estiver explodindo, não atualizar o movimento normal
+        }
+
         if (this.hasLanded && !this.keys.ArrowUp) return;
 
         if (!this.hasLanded) {
@@ -132,8 +146,8 @@ export class Lander {
         if (this.centerY + this.triangleHeight / 2 > this.canvas.height) {
             // Verificar velocidade antes de zerar
             if (Math.abs(this.velocityY) > this.maxLandingSpeed) {
-                this.showGameOverModal();  // Exibir modal de "Game Over"
-                return;  // Interrompe a execução para evitar a exibição de ambas as modais
+                this.triggerExplosion();  // Iniciar a explosão
+                return;  // Não mostrar mais a modal de aterrissagem bem-sucedida
             }
 
             // Aterrissagem bem-sucedida
@@ -152,7 +166,48 @@ export class Lander {
         }
     }
 
+    triggerExplosion() {
+        this.isExploding = true;
+        this.explosionParts = [];
 
+        // Dividir a nave em 5 pedaços para a explosão
+        for (let i = 0; i < 5; i++) {
+            this.explosionParts.push({
+                x: this.centerX,
+                y: this.centerY,
+                velocityX: (Math.random() - 0.5) * 4,  // Velocidade aleatória para os lados
+                velocityY: (Math.random() - 0.5) * 4,  // Velocidade aleatória para cima/baixo
+                rotation: Math.random() * 2 * Math.PI  // Rotação aleatória
+            });
+        }
+
+        this.explosionDuration = 60;  // A animação de explosão durará 60 frames
+    }
+
+    updateExplosion() {
+        this.explosionParts.forEach(part => {
+            part.x += part.velocityX;
+            part.y += part.velocityY;
+        });
+
+        // Diminuir a duração da explosão até o fim
+        this.explosionDuration--;
+
+        // Quando a explosão terminar, exibir a modal de Game Over
+        if (this.explosionDuration <= 0) {
+            this.showGameOverModal();
+            this.isExploding = false;
+        }
+    }
+
+    drawExplosion() {
+        this.ctx.fillStyle = "red";
+        this.explosionParts.forEach(part => {
+            this.ctx.beginPath();
+            this.ctx.arc(part.x, part.y, 5, 0, Math.PI * 2);  // Desenhar os pedaços da nave como pequenos círculos
+            this.ctx.fill();
+        });
+    }
 
     consumeFuel() {
         this.fuel -= this.fuelConsumptionRate;
@@ -171,3 +226,4 @@ export class Lander {
         modal.style.display = 'flex'; // Exibir a modal de "Game Over"
     }
 }
+

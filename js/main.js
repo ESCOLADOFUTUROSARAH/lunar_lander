@@ -28,20 +28,26 @@ document.addEventListener("DOMContentLoaded", function () {
         requestAnimationFrame(loop); // Loop contínuo
     }
 
-    // Reiniciar o jogo ao clicar em "Jogar novamente" nas duas modais
-    const restartButton = document.getElementById('restartButton');
-    const gameOverRestartButton = document.getElementById('gameOverRestartButton');
-
+    // Função para reiniciar o jogo
     function restartGame() {
-        landingModal.style.display = 'none';  // Esconder as modais
+        // Esconder ambas as modais
+        landingModal.style.display = 'none';
         gameOverModal.style.display = 'none';
+
+        // Resetar a nave e o estado de explosão
         lander.centerY = 50;  // Reposicionar a nave no início
         lander.centerX = canvas.width / 2;
         lander.velocityY = 0;
         lander.velocityX = 0;
         lander.fuel = lander.maxFuel;
         lander.hasLanded = false;
+        lander.isExploding = false;  // Reiniciar o estado de explosão
+        lander.explosionParts = [];  // Limpar as partes da explosão
     }
+
+    // Eventos de clique para os botões de "Jogar novamente"
+    const restartButton = document.getElementById('restartButton');
+    const gameOverRestartButton = document.getElementById('gameOverRestartButton');
 
     restartButton.addEventListener('click', restartGame);
     gameOverRestartButton.addEventListener('click', restartGame);
