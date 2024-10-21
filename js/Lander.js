@@ -15,13 +15,13 @@ export class Lander {
         this.hasLanded = false;
         this.fuel = 100;  // Combustível inicial (100%)
         this.maxFuel = 100;
-        this.fuelConsumptionRate = 0.2;  // Quanto de combustível é consumido por ação
+        this.fuelConsumptionRate = 0.2;
         this.keys = {
             ArrowUp: false,
             ArrowLeft: false,
             ArrowRight: false
         };
-        this.particles = [];  // Array para armazenar as partículas de poeira
+        this.particles = [];
     }
 
     draw() {
@@ -45,10 +45,9 @@ export class Lander {
             particle.draw();
         });
 
-        // Remover partículas que não são mais visíveis
         this.particles = this.particles.filter(particle => particle.isVisible());
 
-        // Desenhar os boosters
+        // Desenhar boosters
         ctx.fillStyle = "orange";
         if (this.keys.ArrowUp && (!this.hasLanded || centerY === this.canvas.height - triangleHeight / 2)) {
             ctx.beginPath();
@@ -85,7 +84,7 @@ export class Lander {
         const margin = 20;
         const fuelPercentage = this.fuel / this.maxFuel;
 
-        // Desenhar o texto "Nível de Combustível" acima da barra
+        // Desenhar o texto "Nível de Combustível"
         this.ctx.fillStyle = "white";
         this.ctx.font = "10px Arial";
         this.ctx.fillText("Nível de Combustível", margin, margin - 5);
@@ -128,13 +127,17 @@ export class Lander {
 
         this.centerX += this.velocityX;
 
+        // Verificar se aterrissou
         if (this.centerY + this.triangleHeight / 2 > this.canvas.height) {
             this.centerY = this.canvas.height - this.triangleHeight / 2;
             this.velocityY = 0;
             this.velocityX = 0;
             this.hasLanded = true;
 
-            // Gerar partículas de poeira ao aterrissar
+            // Exibir a modal quando aterrissar
+            this.showLandingModal();
+
+            // Gerar partículas de poeira
             for (let i = 0; i < 20; i++) {
                 this.particles.push(new DustParticle(this.ctx, this.centerX, this.centerY + this.triangleHeight / 2));
             }
@@ -142,10 +145,14 @@ export class Lander {
     }
 
     consumeFuel() {
-        // Reduz o combustível quando os boosters são usados
         this.fuel -= this.fuelConsumptionRate;
         if (this.fuel < 0) {
-            this.fuel = 0;  // Não deixar o combustível ir abaixo de 0
+            this.fuel = 0;
         }
+    }
+
+    showLandingModal() {
+        const modal = document.getElementById('landingModal');
+        modal.style.display = 'flex'; // Exibir a modal
     }
 }
