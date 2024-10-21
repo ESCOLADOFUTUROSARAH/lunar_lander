@@ -87,7 +87,7 @@ export class Lander {
         // Desenhar o texto "Nível de Combustível"
         this.ctx.fillStyle = "white";
         this.ctx.font = "10px Arial";
-        this.ctx.fillText("Nível de Combustível", margin, margin - 5);
+        this.ctx.fillText("Nível de Combustível".toUpperCase(), margin, margin - 5);
 
         // Desenhar a borda da barra
         this.ctx.strokeStyle = "white";

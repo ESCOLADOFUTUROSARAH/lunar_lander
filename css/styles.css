@@ -40,7 +40,6 @@ canvas {
 .modal-content {
     background-color: #000;
     padding: 20px;
-    border-radius: 5px;
     text-align: center;
     font-family: 'Arial', sans-serif;
     color: #fff;
@@ -49,14 +48,17 @@ canvas {
 
 .modal-content p {
     margin-bottom: 20px;
+    text-transform: uppercase;
+    font-size: 14px;
 }
 
 .modal-content button {
     padding: 10px 20px;
     font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
     background-color: orange;
     border: none;
-    border-radius: 5px;
     color: white;
     cursor: pointer;
 }
