@@ -1,4 +1,3 @@
-// js/main.js
 import { Lander } from './Lander.js';
 import { StarField } from './StarField.js';
 
@@ -12,20 +11,43 @@ document.addEventListener("DOMContentLoaded", function () {
     const lander = new Lander(ctx, canvas);
     const starField = new StarField(ctx, canvas);
 
-    // Garantir que as modais estejam escondidas no início
+    let gameRunning = true;  // Controla o estado do loop do jogo
+    let continueAnimatingParticles = false;  // Variável para continuar animando as partículas após a aterrissagem/explosão
+
+    // Garantir que as modais de aterrissagem e game over estejam escondidas no início
     const landingModal = document.getElementById('landingModal');
     const gameOverModal = document.getElementById('gameOverModal');
     landingModal.style.display = 'none';
     gameOverModal.style.display = 'none';
 
     function loop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa a tela
+        // Continuar o loop se o jogo estiver em execução ou se ainda houver partículas visíveis
+        if (!gameRunning && !continueAnimatingParticles) return;
 
-        starField.draw(); // Desenha as estrelas
-        lander.update();  // Atualiza a posição da nave e gera poeira se necessário
-        lander.draw();    // Desenha a nave e a poeira
+        // Limpar o canvas para o próximo frame
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        requestAnimationFrame(loop); // Loop contínuo
+        // Atualizar e desenhar as estrelas no fundo
+        starField.update();
+        starField.draw();
+
+        // Atualizar a posição e o estado da nave se o jogo estiver rodando
+        if (gameRunning) {
+            lander.update();
+        }
+
+        // Desenhar a nave (ou explosão, se estiver explodindo)
+        lander.draw();
+
+        // Verificar se ainda existem partículas visíveis
+        if (lander.particles.length > 0) {
+            continueAnimatingParticles = true;  // Continuar o loop enquanto houver partículas
+        } else {
+            continueAnimatingParticles = false;  // Parar o loop quando todas as partículas sumirem
+        }
+
+        // Continuar o loop do jogo
+        requestAnimationFrame(loop);
     }
 
     // Função para reiniciar o jogo
@@ -34,15 +56,26 @@ document.addEventListener("DOMContentLoaded", function () {
         landingModal.style.display = 'none';
         gameOverModal.style.display = 'none';
 
-        // Resetar a nave e o estado de explosão
-        lander.centerY = 50;  // Reposicionar a nave no início
+        // Resetar a nave, combustível e estado de explosão
+        lander.centerY = 50;
         lander.centerX = canvas.width / 2;
         lander.velocityY = 0;
         lander.velocityX = 0;
         lander.fuel = lander.maxFuel;
         lander.hasLanded = false;
-        lander.isExploding = false;  // Reiniciar o estado de explosão
-        lander.explosionParts = [];  // Limpar as partes da explosão
+        lander.isExploding = false;
+        lander.explosionParts = [];
+        lander.particles = [];  // Limpar as partículas
+
+        // Reiniciar o loop do jogo
+        gameRunning = true;
+        continueAnimatingParticles = false;
+        loop();
+    }
+
+    // Função para parar o loop quando o jogo termina (explosão ou aterrissagem)
+    function endGame() {
+        gameRunning = false;  // Parar o loop do jogo
     }
 
     // Eventos de clique para os botões de "Jogar novamente"
@@ -65,5 +98,25 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    loop(); // Inicia o loop
+    // Redimensionar o canvas se a janela do navegador for redimensionada
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    // Iniciar o loop do jogo
+    loop();
+
+    // Adicionar o controle de fim de jogo no lander
+    lander.showGameOverModal = function () {
+        const modal = document.getElementById('gameOverModal');
+        modal.style.display = 'flex';  // Exibir a modal de "Game Over"
+        endGame();  // Parar o loop do jogo
+    };
+
+    lander.showLandingModal = function () {
+        const modal = document.getElementById('landingModal');
+        modal.style.display = 'flex';  // Exibir a modal de sucesso na aterrissagem
+        endGame();  // Parar o loop do jogo, mas continuar animando as partículas
+    };
 });
