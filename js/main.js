@@ -1,5 +1,6 @@
 import { Lander } from './Lander.js';
 import { StarField } from './StarField.js';
+import { DustParticle } from './DustParticle.js';
 
 document.addEventListener("DOMContentLoaded", function () {
     const canvas = document.getElementById("gameCanvas");
@@ -11,55 +12,97 @@ document.addEventListener("DOMContentLoaded", function () {
     const lander = new Lander(ctx, canvas);
     const starField = new StarField(ctx, canvas);
 
-    let gameRunning = true;  // Controla o estado do loop do jogo
-    let continueAnimatingParticles = false;  // Continua a animação das partículas após o jogo
-
-    // Definindo o número de vidas iniciais
+    let gameRunning = true;
+    let continueAnimatingParticles = false;
     let lives = 3;
+    let score = 0;
 
-    // Modais de aterrissagem e game over
+    // Plataforma inicial
+    const platformHeight = 10;
+    const platformWidth = 100;
+    let platformX = getRandomPlatformX();
+    const platformY = canvas.height - platformHeight;
+
     const landingModal = document.getElementById('landingModal');
     const gameOverModal = document.getElementById('gameOverModal');
-    const finalGameOverModal = document.getElementById('finalGameOverModal');  // Novo modal de game over final
+    const finalGameOverModal = document.getElementById('finalGameOverModal');
     landingModal.style.display = 'none';
     gameOverModal.style.display = 'none';
     finalGameOverModal.style.display = 'none';
 
     function loop() {
-        // Se o jogo parou e não há mais partículas, sair do loop
         if (!gameRunning && !continueAnimatingParticles) return;
 
-        // Limpar o canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Atualizar e desenhar o fundo de estrelas
         starField.update();
         starField.draw();
 
-        // Atualizar a nave enquanto o jogo estiver rodando
         if (gameRunning) {
             lander.update();
+            checkLanding();
         }
 
-        // Desenhar a nave ou sua explosão
         lander.draw();
-
-        // Desenhar as vidas restantes no canto superior direito
         drawLives();
+        drawPlatform();
+        drawScore();
 
-        // Checar se ainda há partículas visíveis
         continueAnimatingParticles = lander.particles.length > 0;
 
-        // Continuar o loop do jogo
         requestAnimationFrame(loop);
     }
 
-    // Função para desenhar os triângulos de vida no canto superior direito
+    // Função para desenhar a plataforma
+    function drawPlatform() {
+        ctx.fillStyle = "white";
+        ctx.fillRect(platformX, platformY, platformWidth, platformHeight);
+    }
+
+    // Função para obter uma nova posição aleatória para a plataforma
+    function getRandomPlatformX() {
+        return Math.random() * (canvas.width - platformWidth);
+    }
+
+    // Função para verificar a aterrissagem
+    function checkLanding() {
+        const landerBottom = lander.centerY + lander.triangleHeight / 2;
+
+        // Verifica se a nave já pousou para evitar múltiplas contagens
+        if (
+            !lander.hasLanded &&  // Adiciona verificação para evitar multiplicação do efeito
+            landerBottom >= platformY &&
+            landerBottom <= platformY + platformHeight &&
+            lander.centerX >= platformX &&
+            lander.centerX <= platformX + platformWidth &&
+            Math.abs(lander.velocityY) <= lander.maxLandingSpeed
+        ) {
+            // Aterrissagem bem-sucedida na plataforma
+            score += 50;
+            lander.fuel = Math.min(lander.maxFuel, lander.fuel + lander.maxFuel * 0.1);
+            lander.hasLanded = true;
+
+            // Gerar partículas de poeira na aterrissagem
+            for (let i = 0; i < 20; i++) {
+                lander.particles.push(new DustParticle(ctx, lander.centerX, landerBottom));
+            }
+
+            // Adicionar um atraso para exibir o efeito de poeira antes da modal
+            setTimeout(showLandingModal, 500);
+        }
+    }
+
+    function drawScore() {
+        ctx.fillStyle = "white";
+        ctx.font = "16px Arial";
+        ctx.fillText(`Score: ${score}`, 20, canvas.height - 20);
+    }
+
     function drawLives() {
-        const triangleSize = 20;  // Tamanho do triângulo que representa uma vida
-        const padding = 10;       // Espaço entre os triângulos e o canto do canvas
-        const spacing = 30;       // Espaço entre cada triângulo
-        const rightMargin = 40;   // Margem adicional para evitar que os triângulos fiquem colados na borda direita
+        const triangleSize = 20;
+        const padding = 10;
+        const spacing = 30;
+        const rightMargin = 40;
 
         for (let i = 0; i < lives; i++) {
             const x = canvas.width - rightMargin - padding - i * spacing;
@@ -76,34 +119,33 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Função para reduzir vidas e verificar fim de jogo
     function loseLife() {
         if (lives > 0) {
-            lives--;  // Reduz uma vida
+            lives--;
         }
         if (lives === 0) {
-            // Exibir o modal de "Game Over" final
             showFinalGameOverModal();
         } else {
-            restartGame(); // Reiniciar o jogo sem resetar as vidas
+            restartGame();
         }
     }
 
-    // Função para reiniciar o jogo, mantendo o número de vidas atuais
     function restartGame() {
         landingModal.style.display = 'none';
         gameOverModal.style.display = 'none';
 
-        // Redefinir a nave e outras variáveis
         lander.centerY = 50;
         lander.centerX = canvas.width / 2;
         lander.velocityY = 0;
         lander.velocityX = 0;
         lander.fuel = lander.maxFuel;
-        lander.hasLanded = false;
+        lander.hasLanded = false;  // Resetando para a próxima rodada
         lander.isExploding = false;
         lander.explosionParts = [];
         lander.particles = [];
+
+        // Reposicionar a plataforma para a próxima rodada
+        platformX = getRandomPlatformX();
 
         gameRunning = true;
         continueAnimatingParticles = false;
@@ -129,15 +171,13 @@ document.addEventListener("DOMContentLoaded", function () {
         endGame();
     }
 
-    // Eventos de clique para os botões de "Jogar novamente" e "Fechar o Jogo"
     document.getElementById('restartButton').addEventListener('click', restartGame);
     document.getElementById('gameOverRestartButton').addEventListener('click', loseLife);
     document.getElementById('closeGameButton').addEventListener('click', () => {
         finalGameOverModal.style.display = 'none';
-        window.location.reload();  // Recarrega a página para reiniciar o jogo
+        window.location.reload();
     });
 
-    // Controle da nave por teclado
     window.addEventListener('keydown', (e) => {
         if (e.key in lander.keys) {
             lander.keys[e.key] = true;
