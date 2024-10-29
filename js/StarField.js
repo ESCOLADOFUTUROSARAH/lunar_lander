@@ -1,39 +1,38 @@
 export class StarField {
-    constructor(ctx, canvas) {
+    constructor(ctx, canvas, numStars = 100) {
         this.ctx = ctx;
         this.canvas = canvas;
         this.stars = [];
 
         // Criar estrelas com posição, raio e opacidade aleatórios
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < numStars; i++) {
             this.stars.push({
-                x: Math.random() * canvas.width,    // Posição X aleatória no canvas
-                y: Math.random() * canvas.height,   // Posição Y aleatória no canvas
-                radius: Math.random() * 1 + 1,      // Raio da estrela (tamanho aleatório)
-                opacity: Math.random()              // Opacidade inicial (brilho)
+                x: Math.random() * canvas.width,      // Posição X aleatória
+                y: Math.random() * canvas.height,     // Posição Y aleatória
+                radius: Math.random() * 1 + 0.5,      // Raio entre 0.5 e 1.5 para maior variação
+                opacity: Math.random() * 0.5 + 0.5    // Opacidade inicial entre 0.5 e 1
             });
         }
     }
 
-    // Método para desenhar as estrelas no canvas
+    // Método para desenhar as estrelas
     draw() {
         for (let star of this.stars) {
             this.ctx.beginPath();
             this.ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-            this.ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;  // Branco com opacidade variável
+            this.ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;  // Branco com opacidade
             this.ctx.fill();
         }
     }
 
-    // Método para atualizar a opacidade das estrelas e criar o efeito de cintilação
+    // Atualiza a opacidade das estrelas para o efeito de cintilação
     update() {
         for (let star of this.stars) {
-            // Alterar levemente a opacidade para simular o brilho
-            star.opacity += (Math.random() - 0.5) * 0.02;  // Cintilação aleatória
+            // Ajuste sutil na opacidade para uma cintilação suave
+            star.opacity += (Math.random() - 0.5) * 0.01;  // Variação menor para cintilação controlada
 
-            // Garantir que a opacidade esteja entre 0 e 1
-            if (star.opacity < 0) star.opacity = 0;  // Evitar opacidade negativa
-            if (star.opacity > 1) star.opacity = 1;  // Limitar opacidade a 1 (máximo de brilho)
+            // Limitar opacidade entre 0.3 e 1 para evitar estrelas muito apagadas
+            star.opacity = Math.max(0.3, Math.min(star.opacity, 1));
         }
     }
 }

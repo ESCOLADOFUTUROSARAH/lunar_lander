@@ -12,39 +12,35 @@ document.addEventListener("DOMContentLoaded", function () {
     const starField = new StarField(ctx, canvas);
 
     let gameRunning = true;  // Controla o estado do loop do jogo
-    let continueAnimatingParticles = false;  // Variável para continuar animando as partículas após a aterrissagem/explosão
+    let continueAnimatingParticles = false;  // Continua a animação das partículas após o jogo
 
-    // Garantir que as modais de aterrissagem e game over estejam escondidas no início
+    // Modais de aterrissagem e game over
     const landingModal = document.getElementById('landingModal');
     const gameOverModal = document.getElementById('gameOverModal');
     landingModal.style.display = 'none';
     gameOverModal.style.display = 'none';
 
     function loop() {
-        // Continuar o loop se o jogo estiver em execução ou se ainda houver partículas visíveis
+        // Se o jogo parou e não há mais partículas, sair do loop
         if (!gameRunning && !continueAnimatingParticles) return;
 
-        // Limpar o canvas para o próximo frame
+        // Limpar o canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Atualizar e desenhar as estrelas no fundo
+        // Atualizar e desenhar o fundo de estrelas
         starField.update();
         starField.draw();
 
-        // Atualizar a posição e o estado da nave se o jogo estiver rodando
+        // Atualizar a nave enquanto o jogo estiver rodando
         if (gameRunning) {
             lander.update();
         }
 
-        // Desenhar a nave (ou explosão, se estiver explodindo)
+        // Desenhar a nave ou sua explosão
         lander.draw();
 
-        // Verificar se ainda existem partículas visíveis
-        if (lander.particles.length > 0) {
-            continueAnimatingParticles = true;  // Continuar o loop enquanto houver partículas
-        } else {
-            continueAnimatingParticles = false;  // Parar o loop quando todas as partículas sumirem
-        }
+        // Checar se ainda há partículas visíveis
+        continueAnimatingParticles = lander.particles.length > 0;
 
         // Continuar o loop do jogo
         requestAnimationFrame(loop);
@@ -52,11 +48,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Função para reiniciar o jogo
     function restartGame() {
-        // Esconder ambas as modais
+        // Esconder as modais
         landingModal.style.display = 'none';
         gameOverModal.style.display = 'none';
 
-        // Resetar a nave, combustível e estado de explosão
+        // Redefinir a nave, combustível, e outras variáveis
         lander.centerY = 50;
         lander.centerX = canvas.width / 2;
         lander.velocityY = 0;
@@ -73,17 +69,25 @@ document.addEventListener("DOMContentLoaded", function () {
         loop();
     }
 
-    // Função para parar o loop quando o jogo termina (explosão ou aterrissagem)
+    // Função para parar o jogo ao término (explosão ou aterrissagem)
     function endGame() {
-        gameRunning = false;  // Parar o loop do jogo
+        gameRunning = false;
+    }
+
+    // Funções para mostrar modais específicas
+    function showGameOverModal() {
+        gameOverModal.style.display = 'flex';
+        endGame();
+    }
+
+    function showLandingModal() {
+        landingModal.style.display = 'flex';
+        endGame();
     }
 
     // Eventos de clique para os botões de "Jogar novamente"
-    const restartButton = document.getElementById('restartButton');
-    const gameOverRestartButton = document.getElementById('gameOverRestartButton');
-
-    restartButton.addEventListener('click', restartGame);
-    gameOverRestartButton.addEventListener('click', restartGame);
+    document.getElementById('restartButton').addEventListener('click', restartGame);
+    document.getElementById('gameOverRestartButton').addEventListener('click', restartGame);
 
     // Capturar eventos de teclado para controlar a nave
     window.addEventListener('keydown', (e) => {
@@ -98,25 +102,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Redimensionar o canvas se a janela do navegador for redimensionada
+    // Redimensionar o canvas ao ajustar a janela do navegador
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        restartGame(); // Reiniciar para ajustar a nave à nova dimensão
     });
 
     // Iniciar o loop do jogo
     loop();
 
-    // Adicionar o controle de fim de jogo no lander
-    lander.showGameOverModal = function () {
-        const modal = document.getElementById('gameOverModal');
-        modal.style.display = 'flex';  // Exibir a modal de "Game Over"
-        endGame();  // Parar o loop do jogo
-    };
-
-    lander.showLandingModal = function () {
-        const modal = document.getElementById('landingModal');
-        modal.style.display = 'flex';  // Exibir a modal de sucesso na aterrissagem
-        endGame();  // Parar o loop do jogo, mas continuar animando as partículas
-    };
+    // Adicionar controle de fim de jogo na nave
+    lander.showGameOverModal = showGameOverModal;
+    lander.showLandingModal = showLandingModal;
 });
