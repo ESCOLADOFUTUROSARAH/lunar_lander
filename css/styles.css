@@ -20,7 +20,7 @@ canvas {
     background-color: black;
 }
 
-/* Estilos para a modal */
+/* Estilos para as modais */
 .modal {
     display: none;
     position: fixed;
@@ -66,4 +66,31 @@ canvas {
 
 .modal-content button:hover {
     background-color: darkorange;
+}
+
+/* Estilo específico para o modal final de Game Over */
+#finalGameOverModal {
+    background-color: rgba(0, 0, 0, 0.8);
+    /* Escurecido para dar maior destaque */
+}
+
+#finalGameOverModal .modal-content {
+    background-color: #333;
+    border-radius: 10px;
+}
+
+/* Estilo do botão de fechamento */
+#closeGameButton {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 14px;
+    color: #fff;
+    background-color: red;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#closeGameButton:hover {
+    background-color: darkred;
 }
