@@ -1,39 +1,54 @@
 export class DustParticle {
-    constructor(ctx, x, y, explosionForce = 1) {
+    constructor(ctx, x, y, options = {}) {
         this.ctx = ctx;
         this.x = x;
         this.y = y;
-        this.size = Math.random() * 3 + 1;  // Tamanho entre 1 e 4
-        // Velocidade X afetada pela força da explosão
-        this.speedX = (Math.random() - 0.5) * 2 * explosionForce;
-        // Velocidade Y para uma dispersão mais realista
-        this.speedY = Math.random() * -2 * explosionForce;
-        this.gravity = 0.05;  // Gravidade para puxar partículas para baixo
-        this.alpha = 1;       // Transparência inicial (opaca)
+
+        // Definir opções padrão e sobrescrever com as opções fornecidas
+        const {
+            size = Math.random() * 3 + 1,       // Tamanho entre 1 e 4
+            color = '255, 255, 255',            // Cor padrão: branco
+            alpha = 1,                          // Transparência inicial
+            speedX = (Math.random() - 0.5) * 2, // Velocidade X aleatória
+            speedY = Math.random() * -2,        // Velocidade Y aleatória (para cima)
+            gravity = 0.05,                     // Gravidade que afeta a partícula
+            fadeRate = 0.02                     // Taxa de desvanecimento da partícula
+        } = options;
+
+        this.size = size;
+        this.color = color;
+        this.alpha = alpha;
+        this.speedX = speedX;
+        this.speedY = speedY;
+        this.gravity = gravity;
+        this.fadeRate = fadeRate;
     }
 
+    // Atualiza a posição e o estado da partícula
     update() {
-        // Atualiza a posição
+        // Atualiza a posição com base nas velocidades
         this.x += this.speedX;
         this.y += this.speedY;
-        // A gravidade afeta a velocidade vertical, puxando a partícula para baixo
+
+        // A gravidade afeta a velocidade vertical
         this.speedY += this.gravity;
-        // Transparência decresce com base na velocidade vertical
-        this.alpha -= 0.02 / (Math.abs(this.speedY) + 1);
-        this.alpha = Math.max(0, this.alpha);  // Evita valores negativos de alpha
+
+        // A transparência diminui gradualmente para criar o efeito de desvanecimento
+        this.alpha -= this.fadeRate;
+        this.alpha = Math.max(0, this.alpha); // Garante que a transparência não seja negativa
     }
 
+    // Desenha a partícula no canvas
     draw() {
-        // Define a cor branca com a transparência atual
-        this.ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+        // Define a cor com a transparência atual
+        this.ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); // Círculo para a partícula
-        this.ctx.closePath();
+        this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); // Desenha um círculo
         this.ctx.fill();
     }
 
+    // Verifica se a partícula ainda está visível
     isVisible() {
-        // Verifica se a partícula ainda é visível
         return this.alpha > 0;
     }
 }

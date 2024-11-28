@@ -1,39 +1,52 @@
+// Importação do módulo DustParticle
 import { DustParticle } from './DustParticle.js';
 
 export class Lander {
     constructor(ctx, canvas) {
         this.ctx = ctx;
         this.canvas = canvas;
-        this.triangleHeight = 25;  // Altura da nave
-        this.triangleBase = 25;    // Base da nave
-        this.centerX = canvas.width / 2;  // Posição inicial X
-        this.centerY = 50;                 // Posição inicial Y
-        this.gravity = 0.162;             // Gravidade da Lua (ajustável para outros planetas)
-        this.velocityY = 0;               // Velocidade vertical inicial
-        this.velocityX = 0;               // Velocidade horizontal inicial
-        this.hasLanded = false;           // Status da aterrissagem
-        this.isExploding = false;         // Estado para controlar a explosão
-        this.explosionParts = [];         // Partes da nave para a explosão
-        this.explosionDuration = 60;      // Duração da animação de explosão (frames)
-        this.fuel = 100;                  // Combustível inicial
-        this.maxFuel = 100;               // Capacidade máxima de combustível
-        this.fuelConsumptionRate = 0.2;   // Taxa de consumo de combustível
-        this.maxLandingSpeed = 2;         // Velocidade máxima de aterrissagem segura
-        this.maxVelocityX = 5;            // Limite de velocidade horizontal
-        this.keys = {                     // Controles do teclado
-            ArrowUp: false,
-            ArrowLeft: false,
-            ArrowRight: false
-        };
-        this.particles = [];  // Partículas de poeira para efeito visual
+
+        // Propriedades da nave
+        this.triangleHeight = 25;
+        this.triangleBase = 25;
+        this.resetPosition();
+
+        // Física
+        this.gravity = 0.162;
+        this.maxLandingSpeed = 2;
+        this.maxVelocityX = 5;
+
+        // Combustível
+        this.fuel = 100;
+        this.maxFuel = 100;
+        this.fuelConsumptionRate = 0.2;
+
+        // Estados do jogo
+        this.hasLanded = false;
+        this.isExploding = false;
+        this.explosionParts = [];
+        this.explosionDuration = 60;
+
+        // Controles
+        this.keys = { ArrowUp: false, ArrowLeft: false, ArrowRight: false };
+
+        // Partículas
+        this.particles = [];
+
+        // Referências aos modais
+        this.landingModal = document.getElementById('landingModal');
+        this.gameOverModal = document.getElementById('gameOverModal');
+        this.finalGameOverModal = document.getElementById('finalGameOverModal');
     }
 
+    // Desenha a nave e elementos relacionados
     draw() {
         const { ctx, centerX, centerY, triangleHeight, triangleBase } = this;
 
         if (this.isExploding) {
             this.drawExplosion();
         } else {
+            // Desenhar a nave
             ctx.fillStyle = "black";
             ctx.strokeStyle = "white";
             ctx.lineWidth = 2;
@@ -45,8 +58,9 @@ export class Lander {
             ctx.fill();
             ctx.stroke();
 
+            // Desenhar chamas dos propulsores
             ctx.fillStyle = "orange";
-            if (this.keys.ArrowUp && (!this.hasLanded || centerY === this.canvas.height - triangleHeight / 2)) {
+            if (this.keys.ArrowUp && this.fuel > 0) {
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY + triangleHeight / 2);
                 ctx.lineTo(centerX - 5, centerY + triangleHeight / 2 + 15);
@@ -54,7 +68,7 @@ export class Lander {
                 ctx.closePath();
                 ctx.fill();
             }
-            if (this.keys.ArrowLeft && !this.hasLanded) {
+            if (this.keys.ArrowLeft && !this.hasLanded && this.fuel > 0) {
                 ctx.beginPath();
                 ctx.moveTo(centerX + triangleBase / 2, centerY);
                 ctx.lineTo(centerX + triangleBase / 2 + 15, centerY - 5);
@@ -62,7 +76,7 @@ export class Lander {
                 ctx.closePath();
                 ctx.fill();
             }
-            if (this.keys.ArrowRight && !this.hasLanded) {
+            if (this.keys.ArrowRight && !this.hasLanded && this.fuel > 0) {
                 ctx.beginPath();
                 ctx.moveTo(centerX - triangleBase / 2, centerY);
                 ctx.lineTo(centerX - triangleBase / 2 - 15, centerY - 5);
@@ -71,19 +85,21 @@ export class Lander {
                 ctx.fill();
             }
 
-            if (!this.isExploding) {
-                this.drawFuelBar();
-            }
+            // Desenhar a barra de combustível
+            this.drawFuelBar();
         }
 
+        // Desenhar partículas
         this.particles.forEach(particle => {
             particle.update();
             particle.draw();
         });
 
+        // Remover partículas que não estão mais visíveis
         this.particles = this.particles.filter(particle => particle.isVisible());
     }
 
+    // Desenha a barra de combustível
     drawFuelBar() {
         const barWidth = 200;
         const barHeight = 20;
@@ -92,7 +108,7 @@ export class Lander {
 
         this.ctx.fillStyle = "white";
         this.ctx.font = "10px Arial";
-        this.ctx.fillText("Nível de Combustível".toUpperCase(), margin, margin - 5);
+        this.ctx.fillText("NÍVEL DE COMBUSTÍVEL", margin, margin - 5);
 
         this.ctx.strokeStyle = "white";
         this.ctx.lineWidth = 2;
@@ -102,65 +118,102 @@ export class Lander {
         this.ctx.fillRect(margin, margin, barWidth * fuelPercentage, barHeight);
     }
 
+    // Atualiza o estado da nave
     update() {
         if (this.isExploding) {
             this.updateExplosion();
             return;
         }
 
-        if (this.hasLanded && !this.keys.ArrowUp) return;
+        if (this.hasLanded && !this.keys.ArrowUp) {
+            this.showLandingModal();
+            return;
+        }
 
+        // Aplicar gravidade
         if (!this.hasLanded) {
             this.velocityY += this.gravity * 0.1;
         }
         this.centerY += this.velocityY;
 
+        // Controle vertical
         if (this.keys.ArrowUp && this.fuel > 0) {
-            if (this.hasLanded) {
-                this.hasLanded = false;
-                this.velocityY = -this.gravity * 1.5;
-            } else {
-                this.velocityY -= this.gravity * 0.3;
-            }
+            this.velocityY -= this.gravity * 0.3;
             this.consumeFuel();
+            this.emitParticles();
         }
 
+        // Controle horizontal
         if (this.keys.ArrowLeft && !this.hasLanded && this.fuel > 0) {
             this.velocityX -= this.gravity * 0.2;
             this.consumeFuel();
+            this.emitParticles();
         }
         if (this.keys.ArrowRight && !this.hasLanded && this.fuel > 0) {
             this.velocityX += this.gravity * 0.2;
             this.consumeFuel();
+            this.emitParticles();
         }
 
+        // Limitar a velocidade horizontal
         this.velocityX = Math.max(Math.min(this.velocityX, this.maxVelocityX), -this.maxVelocityX);
         this.centerX += this.velocityX;
 
-        if (this.centerY + this.triangleHeight / 2 > this.canvas.height) {
+        // Manter dentro dos limites do canvas
+        this.keepWithinBounds();
+
+        // Verificar colisão com o chão
+        if (this.centerY + this.triangleHeight / 2 >= this.canvas.height) {
             if (Math.abs(this.velocityY) > this.maxLandingSpeed) {
                 this.triggerExplosion();
+                this.showGameOverModal();
                 return;
             }
 
             this.hasLanded = true;
-            this.showLandingModal();
-
             this.centerY = this.canvas.height - this.triangleHeight / 2;
             this.velocityY = 0;
             this.velocityX = 0;
 
+            // Emitir partículas de pouso
             for (let i = 0; i < 20; i++) {
                 this.particles.push(new DustParticle(this.ctx, this.centerX, this.centerY + this.triangleHeight / 2));
             }
         }
+
+        // Verificar se o combustível acabou
+        if (this.fuel <= 0 && !this.hasLanded) {
+            this.triggerExplosion();
+            this.showGameOverModal();
+        }
     }
 
+    // Emitir partículas ao usar os propulsores
+    emitParticles() {
+        this.particles.push(new DustParticle(this.ctx, this.centerX, this.centerY + this.triangleHeight / 2));
+    }
+
+    // Manter a nave dentro dos limites do canvas
+    keepWithinBounds() {
+        if (this.centerX - this.triangleBase / 2 < 0) {
+            this.centerX = this.triangleBase / 2;
+            this.velocityX = 0;
+        } else if (this.centerX + this.triangleBase / 2 > this.canvas.width) {
+            this.centerX = this.canvas.width - this.triangleBase / 2;
+            this.velocityX = 0;
+        }
+        if (this.centerY - this.triangleHeight / 2 < 0) {
+            this.centerY = this.triangleHeight / 2;
+            this.velocityY = 0;
+        }
+    }
+
+    // Inicia a explosão
     triggerExplosion() {
         this.isExploding = true;
         this.explosionParts = [];
 
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 20; i++) {
             this.explosionParts.push({
                 x: this.centerX,
                 y: this.centerY,
@@ -173,6 +226,7 @@ export class Lander {
         this.explosionDuration = 60;
     }
 
+    // Atualiza a explosão
     updateExplosion() {
         this.explosionParts.forEach(part => {
             part.x += part.velocityX;
@@ -182,11 +236,12 @@ export class Lander {
         this.explosionDuration--;
 
         if (this.explosionDuration <= 0) {
-            this.showGameOverModal();
             this.isExploding = false;
+            this.showFinalGameOverModal();
         }
     }
 
+    // Desenha a explosão
     drawExplosion() {
         this.ctx.fillStyle = "red";
         this.explosionParts.forEach(part => {
@@ -196,6 +251,7 @@ export class Lander {
         });
     }
 
+    // Consome o combustível
     consumeFuel() {
         this.fuel -= this.fuelConsumptionRate;
         if (this.fuel < 0) {
@@ -203,13 +259,31 @@ export class Lander {
         }
     }
 
-    showLandingModal() {
-        const modal = document.getElementById('landingModal');
-        modal.style.display = 'flex';
+    // Reinicia a posição da nave
+    resetPosition() {
+        this.centerX = this.canvas.width / 2;
+        this.centerY = 50;
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.hasLanded = false;
+        this.isExploding = false;
+        this.explosionParts = [];
+        this.particles = [];
+        this.fuel = this.maxFuel;
     }
 
+    // Exibe o modal de aterrissagem bem-sucedida
+    showLandingModal() {
+        this.landingModal.classList.add('show');
+    }
+
+    // Exibe o modal de game over
     showGameOverModal() {
-        const modal = document.getElementById('gameOverModal');
-        modal.style.display = 'flex';
+        this.gameOverModal.classList.add('show');
+    }
+
+    // Exibe o modal de game over final
+    showFinalGameOverModal() {
+        this.finalGameOverModal.classList.add('show');
     }
 }

@@ -1,36 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/styles.css">
     <title>Lunar Lander</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
     <canvas id="gameCanvas"></canvas>
 
     <!-- Modal de Aterrissagem Bem-Sucedida -->
-    <div id="landingModal" class="modal">
+    <div id="landingModal" class="modal" role="dialog" aria-labelledby="landingModalTitle" aria-hidden="true" tabindex="-1">
         <div class="modal-content">
-            <p>Aterrissagem bem-sucedida!</p>
+            <p id="landingModalTitle">Aterrissagem bem-sucedida!</p>
             <button id="restartButton">Jogar novamente</button>
         </div>
     </div>
 
     <!-- Modal de Game Over -->
-    <div id="gameOverModal" class="modal">
+    <div id="gameOverModal" class="modal" role="dialog" aria-labelledby="gameOverModalTitle" aria-hidden="true" tabindex="-1">
         <div class="modal-content">
-            <p>Você perdeu a nave. A nave explodiu!</p>
+            <p id="gameOverModalTitle">Você perdeu a nave. A nave explodiu!</p>
             <button id="gameOverRestartButton">Jogar novamente</button>
         </div>
     </div>
 
     <!-- Modal de Game Over Final -->
-    <div id="finalGameOverModal" class="modal">
+    <div id="finalGameOverModal" class="modal" role="dialog" aria-labelledby="finalGameOverModalTitle" aria-hidden="true" tabindex="-1">
         <div class="modal-content">
-            <p>Game Over</p>
+            <p id="finalGameOverModalTitle">Game Over</p>
             <button id="closeGameButton">Fechar o Jogo</button>
         </div>
     </div>
