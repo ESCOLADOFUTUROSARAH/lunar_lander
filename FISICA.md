@@ -63,5 +63,3 @@ A tabela abaixo sugere valores para o professor testar diferentes ambientes cele
 
 ### Conclusão
 A modificação da gravidade permite adaptar o jogo para diferentes níveis de dificuldade ou para explorar conceitos físicos com os alunos. Ao testar valores diferentes, podemos entender melhor a relação entre a gravidade e o controle do movimento, enriquecendo a experiência educacional de forma lúdica.
-
-Se precisar de ajuda para fazer essas alterações ou entender outros parâmetros do jogo, sinta-se à vontade para entrar em contato!
