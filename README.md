@@ -10,10 +10,6 @@ Um jogo clássico de pouso lunar desenvolvido com HTML5, CSS, e JavaScript, onde
 - **Efeitos Visuais:** Partículas simulando chamas dos propulsores, poeira ao pousar e explosões em caso de colisão.
 - **Estrelas Cintilantes:** Fundo animado com estrelas cintilantes para um efeito visual de espaço.
 
-## 🖼️ Demonstração
-
-![Jogo Lunar Lander](assets/lunar_lander_demo.gif)
-
 ## 🛠️ Tecnologias Utilizadas
 
 - **HTML5:** Para estruturar a interface do jogo.
@@ -69,14 +65,6 @@ Lunar-Lander/
 - Cada pouso bem-sucedido gera pontos adicionais.
 - Cada vida perdida é exibida no canto superior direito.
 - O jogo se torna mais difícil à medida que o combustível se esgota.
-
-## 📸 Capturas de Tela
-
-### Pouso Bem-Sucedido
-![Pouso Bem-Sucedido](assets/successful_landing.png)
-
-### Game Over
-![Game Over](assets/game_over.png)
 
 ## 🤝 Contribuições
 
