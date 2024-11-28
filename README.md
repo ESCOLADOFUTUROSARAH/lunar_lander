@@ -24,12 +24,10 @@ Lunar-Lander/
 ├── css/
 │   └── styles.css     # Estilos do jogo
 ├── js/
-│   ├── main.js        # Lógica principal do jogo
-│   ├── Lander.js      # Classe da nave (Lander)
-│   ├── DustParticle.js# Classe das partículas
-│   └── StarField.js   # Classe para o campo de estrelas
-└── assets/
-    └── lunar_lander_demo.gif  # Demonstração do jogo
+    ├── main.js        # Lógica principal do jogo
+    ├── Lander.js      # Classe da nave (Lander)
+    ├── DustParticle.js# Classe das partículas
+    └── StarField.js   # Classe para o campo de estrelas
 ```
 
 ## ⚙️ Como Executar o Projeto

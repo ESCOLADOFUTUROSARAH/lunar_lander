@@ -12,7 +12,7 @@ export class Lander {
         this.resetPosition();
 
         // Física
-        this.gravity = 0.162;
+        this.gravity = 0.027;
         this.maxLandingSpeed = 2;
         this.maxVelocityX = 5;
 
