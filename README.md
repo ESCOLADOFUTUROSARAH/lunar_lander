@@ -76,7 +76,7 @@ Contribuições são sempre bem-vindas! Se você deseja melhorar este projeto, s
 
 ## 📝 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](https://mit-license.org/) para mais detalhes.
 
 ---
 
